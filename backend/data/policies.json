@@ -1,0 +1,58 @@
+{
+  "policies": [
+    {
+      "id": "POL-001",
+      "title": "Annual & Paid Time Off Policy",
+      "category": "leave",
+      "content": "All full-time employees are entitled to 24 days of paid annual leave per calendar year, accrued at 2 days per month. Unused leaves up to 10 days can be carried forward to the next year. Medical/Sick leave is 12 days per year, requiring a medical certificate if consecutive days exceed 3. Casual leave is 8 days per year.",
+      "effective_date": "2024-01-01",
+      "last_updated": "2025-06-15",
+      "approval_required": "Manager approval for >2 consecutive days"
+    },
+    {
+      "id": "POL-002",
+      "title": "Remote & Hybrid Work Policy",
+      "category": "workplace",
+      "content": "Employees in Engineering, Product, and Design may work remotely up to 3 days per week (typically Tuesday and Thursday in office, or manager-approved schedule). Fridays are company-wide optional remote days for eligible teams. Customer Support and Sales teams follow department-specific rotas. High-speed internet allowance of INR 2,000/month is reimbursed.",
+      "effective_date": "2024-03-01",
+      "last_updated": "2025-08-10",
+      "approval_required": "Department Head approval for permanent full-remote"
+    },
+    {
+      "id": "POL-003",
+      "title": "Parental & Maternity/Paternity Leave Policy",
+      "category": "leave",
+      "content": "Female employees are eligible for 26 weeks of paid maternity leave for up to two surviving children. Male employees are entitled to 2 weeks of paid paternity leave within 6 months of childbirth or adoption. Adoption leave of 12 weeks is provided for adopting a child below 1 year.",
+      "effective_date": "2023-05-01",
+      "last_updated": "2025-01-10",
+      "approval_required": "HR verification with supporting medical/legal documents"
+    },
+    {
+      "id": "POL-004",
+      "title": "Sabbatical & Long Leave Policy",
+      "category": "leave",
+      "content": "Employees with a minimum of 5 continuous years of tenure are eligible to apply for an unpaid or partially sponsored sabbatical leave of up to 3 months for higher education, research, or personal enrichment. Performance rating must be 'Exceeds Expectations' or 'Meets Expectations' in the last 2 evaluation cycles.",
+      "effective_date": "2023-01-01",
+      "last_updated": "2024-11-20",
+      "approval_required": "VP/Executive leadership approval"
+    },
+    {
+      "id": "POL-005",
+      "title": "Health & Wellness Benefits Policy",
+      "category": "benefits",
+      "content": "Group Medical Insurance covers employees, spouse, up to 2 children, and dependent parents up to INR 7,00,000 sum insured. Annual health checkup is 100% reimbursed up to INR 3,500. Mental wellness subscriptions (Calm / Practo Mind) are fully subsidized by the company.",
+      "effective_date": "2024-04-01",
+      "last_updated": "2025-04-01",
+      "approval_required": "Self-service reimbursement portal"
+    },
+    {
+      "id": "POL-006",
+      "title": "Travel & Expense Reimbursement Policy",
+      "category": "finance",
+      "content": "Official domestic travel permits flight bookings in Economy class for trips over 6 hours; AC 2-Tier train or Economy flights otherwise. Hotel stay limit is INR 4,500/night for Tier-1 cities (Delhi, Mumbai, Bengaluru) and INR 3,000/night for Tier-2 cities. Per-diem food allowance is INR 1,200/day.",
+      "effective_date": "2024-01-15",
+      "last_updated": "2025-05-30",
+      "approval_required": "Manager pre-approval before booking"
+    }
+  ]
+}

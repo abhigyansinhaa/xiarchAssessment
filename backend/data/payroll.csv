@@ -1,0 +1,11 @@
+employee_id,name,department,base_salary_inr,allowances_inr,deductions_inr,net_salary_inr,payment_cycle,currency,last_disbursed
+101,Aarav Sharma,Engineering,180000,25000,18000,187000,Monthly,INR,2026-08-31
+102,Diya Patel,Engineering,135000,18000,13500,139500,Monthly,INR,2026-08-31
+103,Rohan Verma,Product,165000,22000,16500,170500,Monthly,INR,2026-08-31
+104,Priya Iyer,Human Resources,120000,15000,12000,123000,Monthly,INR,2026-08-31
+105,Amit Patel,Engineering,220000,30000,22000,228000,Monthly,INR,2026-08-31
+106,Neha Gupta,Marketing,110000,14000,11000,113000,Monthly,INR,2026-08-31
+107,Vikram Singh,Finance,140000,19000,14000,145000,Monthly,INR,2026-08-31
+108,Ananya Roy,Design,125000,16000,12500,128500,Monthly,INR,2026-08-31
+109,Karan Malhotra,Operations,105000,12000,10500,106500,Monthly,INR,2026-08-31
+110,Sneha Kulkarni,Customer Success,95000,11000,9500,96500,Monthly,INR,2026-08-31

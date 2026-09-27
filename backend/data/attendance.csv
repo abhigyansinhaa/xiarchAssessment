@@ -1,0 +1,36 @@
+employee_id,date,check_in,check_out,hours_worked,status,notes
+101,2026-09-01,09:05,18:12,9.1,present,On-time
+101,2026-09-02,09:12,18:30,9.3,present,On-time
+101,2026-09-03,09:00,18:05,9.0,present,On-time
+101,2026-09-04,09:20,18:15,8.9,present,On-time
+101,2026-09-05,09:01,17:45,8.7,present,Remote work Friday
+102,2026-09-01,09:45,18:00,8.2,late,Traffic delay
+102,2026-09-02,-,-,0.0,absent,Unplanned absence
+102,2026-09-03,-,-,0.0,absent,Medical issue
+102,2026-09-04,-,-,0.0,absent,Medical leave submitted
+102,2026-09-05,-,-,0.0,absent,Consecutive absence >3 days flagged
+103,2026-09-01,08:55,18:00,9.0,present,On-time
+103,2026-09-02,09:00,18:10,9.1,present,On-time
+103,2026-09-03,09:05,18:00,8.9,present,On-time
+103,2026-09-04,09:02,18:15,9.2,present,On-time
+103,2026-09-05,09:00,18:00,9.0,present,Remote work Friday
+104,2026-09-01,09:15,18:20,9.0,present,On-time
+104,2026-09-02,09:10,18:15,9.0,present,On-time
+104,2026-09-03,-,-,0.0,absent,Casual leave
+104,2026-09-04,09:05,18:10,9.0,present,On-time
+104,2026-09-05,09:00,17:50,8.8,present,Remote work Friday
+105,2026-09-01,09:00,18:00,9.0,present,On-time
+105,2026-09-02,09:05,18:05,9.0,present,On-time
+105,2026-09-03,09:10,18:15,9.0,present,On-time
+105,2026-09-04,09:00,18:00,9.0,present,On-time
+105,2026-09-05,09:00,18:00,9.0,present,Remote work Friday
+106,2026-09-01,10:15,19:15,9.0,late,Late check-in
+106,2026-09-02,10:20,18:30,8.1,late,Late check-in
+106,2026-09-03,-,-,0.0,absent,Sick leave
+106,2026-09-04,-,-,0.0,absent,Sick leave
+106,2026-09-05,-,-,0.0,absent,Sick leave
+107,2026-09-01,09:00,18:00,9.0,present,On-time
+107,2026-09-02,09:00,18:00,9.0,present,On-time
+107,2026-09-03,09:00,18:00,9.0,present,On-time
+107,2026-09-04,09:00,18:00,9.0,present,On-time
+107,2026-09-05,09:00,18:00,9.0,present,On-time

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Xiarch Bharat — Autonomous AI Enterprise Agent</title>
+  <meta name="description" content="Autonomous AI Agent with internal knowledge retrieval, ReAct reasoning, multi-step planning, and human-in-the-loop governance.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/index.css">
+</head>
+<body>
+  <!-- App Container -->
+  <div class="app-layout">
+    
+    <!-- Top Navigation Header -->
+    <header class="navbar">
+      <div class="brand">
+        <div class="logo-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-title">Xiarch Bharat <span class="badge badge-ai">Agentic AI</span></div>
+          <div class="brand-subtitle">Autonomous Internal Operations & Governance Agent</div>
+        </div>
+      </div>
+
+      <!-- Knowledge Sources Indicator -->
+      <div class="knowledge-chips" id="knowledgeChips">
+        <div class="chip" title="SQLite Central DB"><span class="dot dot-green"></span> SQLite DB</div>
+        <div class="chip" title="JSON Policy Registry"><span class="dot dot-blue"></span> JSON Policies</div>
+        <div class="chip" title="CSV Attendance & Payroll"><span class="dot dot-amber"></span> CSV Operations</div>
+        <div class="chip" title="ChromaDB Vector Store"><span class="dot dot-purple"></span> ChromaDB Vector</div>
+      </div>
+
+      <!-- Action Tools -->
+      <div class="header-actions">
+        <button class="btn btn-secondary" id="btnOpenAudit" title="View Audit Logs">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+          Audit Logs
+        </button>
+        <button class="btn btn-secondary" id="btnOpenMemory" title="View Long-Term Memory">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          Memory Vault
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="chat-container">
+      
+      <!-- Quick Demo Scenarios Bar -->
+      <div class="scenarios-bar">
+        <span class="scenarios-label">⚡ Evaluation Scenarios:</span>
+        <div class="scenarios-scroll">
+          <button class="scenario-pill" data-prompt="Who is the manager of Priya Sharma?">1. Manager Query (DB)</button>
+          <button class="scenario-pill" data-prompt="What is our remote work policy? Can I work from home on Friday?">2. Remote Policy (Vector+JSON)</button>
+          <button class="scenario-pill" data-prompt="Submit a leave request for Rahul from 2026-10-01 to 2026-10-05 for vacation">3. Leave Request (Critical Action)</button>
+          <button class="scenario-pill" data-prompt="How many leaves does Amit have left, and does he qualify for a sabbatical per company policy?">4. Sabbatical + Balance (Multi-Step & Parallel)</button>
+          <button class="scenario-pill" data-prompt="Show me the attendance report for the Engineering team this month and flag anyone with >3 absences">5. Attendance Irregularity (CSV)</button>
+          <button class="scenario-pill" data-prompt="Remember that Neha prefers email communication over Slack">6. Commit to Memory</button>
+          <button class="scenario-pill" data-prompt="Approve all pending leave requests for the Marketing team">7. Batch Approval (Parallel Action)</button>
+          <button class="scenario-pill" data-prompt="Neha says she has 20 leave days left but the system shows 15 — what should I do?">8. Conflict Resolution</button>
+        </div>
+      </div>
+
+      <!-- Messages Thread -->
+      <div class="messages-viewport" id="messagesViewport">
+        <!-- Welcome Message -->
+        <div class="message-row assistant">
+          <div class="avatar ai-avatar">AI</div>
+          <div class="message-bubble">
+            <div class="message-header">
+              <span class="sender-name">Xiarch Bharat Autonomous Agent</span>
+              <span class="timestamp">System Online</span>
+            </div>
+            <div class="message-body">
+              <p>Welcome! I am your <strong>Autonomous Enterprise Agent</strong>, operating strictly over Xiarch Bharat's internal knowledge base:</p>
+              <ul>
+                <li>🗃️ <strong>SQLite Central Database</strong> — 19 employee profiles, live reporting hierarchy & leave transactions</li>
+                <li>📄 <strong>JSON Policy Registry</strong> — Policies POL-001 through POL-006 (leave, expenses, health)</li>
+                <li>📊 <strong>CSV Operations Data</strong> — Daily punch cards & monthly payroll disbursement records</li>
+                <li>🔍 <strong>ChromaDB Vector Store</strong> — Semantic search over comprehensive HR handbooks</li>
+              </ul>
+              <p>Every response demonstrates <strong>pre-execution reasoning</strong>, <strong>multi-step planning</strong>, <strong>explainability</strong>, and <strong>human approval gates</strong> for critical mutations.</p>
+              <p><em>Click any scenario button above or type your question below to begin!</em></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat Input Area -->
+      <div class="input-panel">
+        <form id="chatForm" class="chat-form">
+          <textarea 
+            id="queryInput" 
+            class="chat-input" 
+            placeholder="Ask a question or request an action across internal knowledge sources..."
+            rows="1"
+            required
+          ></textarea>
+          <button type="submit" id="submitBtn" class="btn btn-primary send-btn" title="Send Request">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </form>
+        <div class="input-caption">Autonomous ReAct Loop • Human-in-the-Loop Safe • Zero External Hallucinations</div>
+      </div>
+    </main>
+
+    <!-- Slide-over Drawer: Audit Logs -->
+    <div class="drawer" id="auditDrawer">
+      <div class="drawer-header">
+        <h3>📋 Operational Audit Trail</h3>
+        <button class="drawer-close" id="btnCloseAudit">&times;</button>
+      </div>
+      <div class="drawer-body" id="auditLogsContainer">
+        <div class="loading-spinner">Loading audit logs...</div>
+      </div>
+    </div>
+
+    <!-- Slide-over Drawer: Memory Vault -->
+    <div class="drawer" id="memoryDrawer">
+      <div class="drawer-header">
+        <h3>🧠 Long-Term Memory Vault</h3>
+        <button class="drawer-close" id="btnCloseMemory">&times;</button>
+      </div>
+      <div class="drawer-body" id="memoryContainer">
+        <div class="loading-spinner">Loading persistent memories...</div>
+      </div>
+    </div>
+
+    <!-- Backdrop Overlay -->
+    <div class="drawer-backdrop" id="drawerBackdrop"></div>
+
+    <!-- Human Approval Modal Dialog -->
+    <div class="modal-overlay" id="approvalModal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-icon-warning">⚠️</div>
+          <div>
+            <h3 class="modal-title">Human Approval Required</h3>
+            <div class="modal-subtitle">Critical Action Intercepted by Governance Engine</div>
+          </div>
+        </div>
+        <div class="modal-body" id="approvalModalBody">
+          <!-- Populated dynamically -->
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-danger" id="btnRejectAction">Reject & Abort</button>
+          <button class="btn btn-success" id="btnApproveAction">Authorize & Execute</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
