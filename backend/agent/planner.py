@@ -1,5 +1,6 @@
 import re
 from typing import List, Dict, Any
+from backend.knowledge.sqlite_source import extract_employee
 
 
 class TaskPlan:
@@ -32,9 +33,16 @@ class MultiStepPlanner:
 
         # Case 1: Sabbatical + Leave Balance multi-source query
         if ("sabbatical" in q or "long leave" in q) and ("leave" in q or "balance" in q or "qualify" in q):
-            # Extract possible name
-            name_match = re.search(r'(?:for|of|does)\s+([A-Za-z]+)', user_query)
-            target_name = name_match.group(1) if name_match else "Amit Patel"
+            # Dynamic lookup of employee from DB
+            target_name = extract_employee(user_query)
+            if not target_name:
+                # Do NOT plan multi-step with a hardcoded fallback name if employee not in records
+                return TaskPlan(
+                    query=user_query,
+                    is_multistep=False,
+                    parallel_execution=False,
+                    steps=[]
+                )
 
             return TaskPlan(
                 query=user_query,

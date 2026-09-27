@@ -1,6 +1,47 @@
+import re
 from typing import List, Dict, Any, Optional
 from sqlalchemy import or_
 from backend.models.database import SessionLocal, Employee, LeaveRequest
+
+_CACHED_EMPLOYEE_NAMES: Optional[List[str]] = None
+
+
+def get_all_employee_names(force_refresh: bool = False) -> List[str]:
+    """Retrieve all employee names from the SQLite database, cached in memory."""
+    global _CACHED_EMPLOYEE_NAMES
+    if _CACHED_EMPLOYEE_NAMES is None or force_refresh:
+        db = SessionLocal()
+        try:
+            _CACHED_EMPLOYEE_NAMES = [row[0] for row in db.query(Employee.name).all()]
+        except Exception as e:
+            print(f"[sqlite_source] Error querying employee names: {e}")
+            return []
+        finally:
+            db.close()
+    return _CACHED_EMPLOYEE_NAMES
+
+
+def extract_employee(query: str) -> Optional[str]:
+    """
+    Fuzzy-match the query against actual employee names in the SQLite database.
+    Prioritizes full name matches, then individual name parts (>= 3 chars) on word boundaries.
+    """
+    if not query:
+        return None
+    q = query.lower()
+    names = get_all_employee_names()
+    # 1. Full name match (longest names checked first to avoid partial conflicts)
+    for name in sorted(names, key=len, reverse=True):
+        if name.lower() in q:
+            return name
+
+    # 2. Part / token match (first name or last name) with word boundary
+    for name in sorted(names, key=len, reverse=True):
+        for part in name.split():
+            if len(part) >= 3 and re.search(rf'\b{re.escape(part.lower())}\b', q):
+                return name
+
+    return None
 
 
 class SQLiteKnowledgeSource:

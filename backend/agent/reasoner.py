@@ -4,6 +4,8 @@ from typing import Dict, Any, List, Optional, Tuple
 from backend.config import OPENAI_API_KEY, OPENAI_MODEL
 from backend.agent.tools import TOOL_DEFINITIONS, TOOL_SOURCE_MAP
 from backend.agent.memory import memory_manager
+from backend.knowledge.sqlite_source import get_all_employee_names, extract_employee
+from backend.knowledge.loader import knowledge_manager
 
 SYSTEM_PROMPT = """You are an Autonomous AI Agent for Xiarch Bharat's internal enterprise operations.
 
@@ -95,13 +97,57 @@ class Reasoner:
     def _internal_reasoning_engine(self, query: str, session_id: str) -> Tuple[List[Dict[str, Any]], str]:
         q = query.lower().strip()
 
+        # Dynamic employee extraction from SQLite database
+        extracted_employee = extract_employee(query)
+
+        # Keyword synonym groups for intent detection
+        manager_keywords = ("manager", "reports to", "report to", "manages", "who does", "supervisor", "reporting line", "reporting")
+        sabbatical_keywords = ("sabbatical", "long leave")
+        leave_sub_keywords = (("submit" in q or "apply" in q or "request" in q or "book" in q) and "leave" in q)
+        attendance_keywords = ("attendance", "absent", "absences", "irregularity", "irregularities", "swipes", "punch", "missing days", "timesheet")
+        remote_keywords = ("remote", "hybrid", "work from home", "wfh", "telecommute", "in-office", "office days", "friday", "home setup")
+
+        # Top Guard: If query clearly targets an employee-specific inquiry (manager, sabbatical, leave request)
+        # but extraction returns None, short-circuit to search_employees with raw query or candidate name
+        is_employee_specific_intent = (
+            any(k in q for k in manager_keywords)
+            or any(k in q for k in sabbatical_keywords)
+            or leave_sub_keywords
+            or ("leave" in q and ("qualify" in q or "balance" in q or "remaining" in q or "days left" in q))
+        )
+
+        if is_employee_specific_intent and extracted_employee is None:
+            # Check for candidate proper nouns or phrases (e.g. "of John Doe", "for Alice")
+            cand = re.search(r'(?:for|of|does|is|about)\s+([A-Za-z]+(?:\s+[A-Za-z]+)?)', query)
+            search_term = cand.group(1).strip() if cand else query
+            thought = (
+                f"User query targets employee-specific records ('{query}'), but no registered employee "
+                f"was resolved in the database. Short-circuiting to search_employees for '{search_term}' "
+                "to verify records and avoid incorrect silent assumptions."
+            )
+            return [
+                {
+                    "tool": "search_employees",
+                    "arguments": {"query": search_term},
+                    "reasoning": f"Query SQLite HR directory for '{search_term}' to verify employee existence."
+                }
+            ], thought
+
         # Sabbatical + Leave eligibility check (Multi-source query)
-        if "sabbatical" in q or ("qualify" in q and "leave" in q):
-            name = "Amit Patel"
-            for n in ["amit", "diya", "aarav", "priya", "rohan", "neha", "vikram"]:
-                if n in q:
-                    name = n.title()
-                    break
+        if any(k in q for k in sabbatical_keywords) or ("qualify" in q and "leave" in q):
+            name = extracted_employee
+            if not name:
+                thought = (
+                    f"User inquired about sabbatical eligibility, but employee could not be resolved from '{query}'. "
+                    f"Checking SQLite personnel directory."
+                )
+                return [
+                    {
+                        "tool": "search_employees",
+                        "arguments": {"query": query},
+                        "reasoning": "Search internal SQLite directory to resolve employee before verifying sabbatical."
+                    }
+                ], thought
 
             thought = (
                 f"User is inquiring about sabbatical eligibility for '{name}'. "
@@ -123,13 +169,17 @@ class Reasoner:
             ], thought
 
         # Manager lookup query
-        if "manager" in q or "reports to" in q or "who is the manager" in q:
-            # Extract target name
-            target = "Priya"
-            for name in ["priya sharma", "priya", "aarav", "diya", "amit", "rohan", "neha", "vikram", "ananya", "sneha"]:
-                if name in q:
-                    target = name
-                    break
+        if any(k in q for k in manager_keywords):
+            target = extracted_employee
+            if not target:
+                thought = f"User requested reporting structure, but employee could not be resolved. Searching SQLite directory for '{query}'."
+                return [
+                    {
+                        "tool": "search_employees",
+                        "arguments": {"query": query},
+                        "reasoning": f"Search SQLite employee directory for '{query}'."
+                    }
+                ], thought
 
             thought = (
                 f"User requested reporting structure for '{target}'. "
@@ -144,7 +194,7 @@ class Reasoner:
             ], thought
 
         # Remote work policy query
-        if "remote" in q or "hybrid" in q or "work from home" in q or "wfh" in q:
+        if any(k in q for k in remote_keywords):
             thought = (
                 "User requested remote work policy specifications. "
                 "Searching both the JSON Policy Registry (POL-002) and ChromaDB vector store "
@@ -164,13 +214,20 @@ class Reasoner:
             ], thought
 
         # Leave submission action (Critical action!)
-        if ("submit" in q or "apply" in q or "request" in q or "book" in q) and "leave" in q:
-            # Parse parameters
-            emp_name = "Rahul"
-            for n in ["rahul", "amit", "diya", "aarav", "rohan", "neha", "vikram", "tanvi"]:
-                if n in q:
-                    emp_name = n.title()
-                    break
+        if leave_sub_keywords:
+            emp_name = extracted_employee
+            if not emp_name:
+                thought = (
+                    f"Leave submission action requested, but employee was not identified in internal records for '{query}'. "
+                    "Refusing silent default to prevent corrupting legal records. Searching employee directory."
+                )
+                return [
+                    {
+                        "tool": "search_employees",
+                        "arguments": {"query": query},
+                        "reasoning": "Employee not identified in records; searching directory before attempting critical action."
+                    }
+                ], thought
 
             dates = re.findall(r'\b\d{4}-\d{2}-\d{2}\b', query)
             if len(dates) >= 2:
@@ -206,7 +263,7 @@ class Reasoner:
             ], thought
 
         # Attendance report query
-        if "attendance" in q or ("absent" in q and ("who" in q or "show" in q or "flag" in q or "report" in q)):
+        if any(k in q for k in attendance_keywords):
             dept = "Engineering" if "engineering" in q else ("Marketing" if "marketing" in q else None)
             thought = (
                 "User requested attendance performance analysis. "
@@ -223,18 +280,26 @@ class Reasoner:
 
         # Conflict detection / resolution
         if ("conflict" in q or "discrepancy" in q or "says" in q or "claims" in q) and "leave" in q:
+            emp_name = extracted_employee
+            emp_id = 106
+            if emp_name:
+                emp_rec = knowledge_manager.sqlite.get_employee_by_name(emp_name)
+                if emp_rec:
+                    emp_id = emp_rec["id"]
+
             num_match = re.search(r'(\d+)\s*(?:days|leave)', q)
             claimed = int(num_match.group(1)) if num_match else 20
+            target_disp = emp_name or f"Employee #{emp_id}"
             thought = (
-                f"Detected potential data conflict between external employee assertion ({claimed} days) and internal system. "
+                f"Detected potential data conflict between external employee assertion ({claimed} days) for {target_disp} and internal system. "
                 "Initiating conflict detection protocol: Querying authoritative SQLite database to evaluate true balance, "
                 "calculating exact variance, and citing Policy POL-001 Section 4 discrepancy resolution procedure."
             )
             return [
                 {
                     "tool": "detect_conflicts",
-                    "arguments": {"employee_id": 106, "claimed_balance": claimed},
-                    "reasoning": "Cross-check self-reported balance against authoritative SQLite employee records."
+                    "arguments": {"employee_id": emp_id, "claimed_balance": claimed},
+                    "reasoning": f"Cross-check self-reported balance for {target_disp} against authoritative SQLite employee records."
                 }
             ], thought
 

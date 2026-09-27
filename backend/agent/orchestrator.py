@@ -211,6 +211,13 @@ class AgentOrchestrator:
             s_data = sabbatical_res["output"]
             b_data = balance_res["output"]
 
+            if isinstance(s_data, dict) and "error" in s_data:
+                return (
+                    f"### Sabbatical Analysis: Employee Record Not Found\n\n"
+                    f"{s_data['error']}\n\n"
+                    "Unable to calculate continuous tenure or verify sabbatical eligibility."
+                )
+
             if isinstance(s_data, dict) and "calculated_tenure_years" in s_data:
                 elig_status = "✅ **QUALIFIED**" if s_data["is_eligible"] else "❌ **NOT CURRENTLY ELIGIBLE**"
                 parts.append(
@@ -247,41 +254,87 @@ class AgentOrchestrator:
 
         # Handling Manager / Employee Search
         emp_search_res = next((r for r in executed_results if r["tool"] in ("search_employees", "get_employee_details")), None)
-        if emp_search_res and "manager" in user_query.lower():
+        manager_keywords = ("manager", "reports to", "report to", "manages", "who does", "supervisor", "reporting line", "reporting")
+        is_manager_query = any(k in user_query.lower() for k in manager_keywords)
+
+        if emp_search_res:
             out = emp_search_res["output"]
+            if isinstance(out, list) and not out:
+                return (
+                    f"### Employee Not Found in Internal Records\n\n"
+                    f"I searched the SQLite Central HR Database, but could not find any active employee record "
+                    f"matching: **\"{user_query}\"**.\n\n"
+                    f"Please verify the employee name or check the personnel directory."
+                )
             if isinstance(out, list) and out:
                 emp = out[0]
-                return (
-                    f"### Reporting Structure for {emp['name']}\n\n"
-                    f"- **Employee:** {emp['name']} (ID: #{emp['id']})\n"
-                    f"- **Role:** {emp['role']}\n"
-                    f"- **Department:** {emp['department']}\n"
-                    f"- **Direct Manager:** **{emp.get('manager_name') or 'Reports directly to Board of Directors'}** "
-                    f"(Manager ID: #{emp.get('manager_id') or 'N/A'})\n\n"
-                    f"**Data Provenance:** Retrieved from internal SQLite Central Personnel Database."
-                )
+                if is_manager_query:
+                    return (
+                        f"### Reporting Structure for {emp['name']}\n\n"
+                        f"- **Employee:** {emp['name']} (ID: #{emp['id']})\n"
+                        f"- **Role:** {emp['role']}\n"
+                        f"- **Department:** {emp['department']}\n"
+                        f"- **Direct Manager:** **{emp.get('manager_name') or 'Reports directly to Board of Directors'}** "
+                        f"(Manager ID: #{emp.get('manager_id') or 'N/A'})\n\n"
+                        f"**Data Provenance:** Retrieved from internal SQLite Central Personnel Database."
+                    )
+                else:
+                    return (
+                        f"### Employee Record: {emp['name']}\n\n"
+                        f"- **Employee ID:** #{emp['id']}\n"
+                        f"- **Name:** {emp['name']}\n"
+                        f"- **Role:** {emp['role']}\n"
+                        f"- **Department:** {emp['department']}\n"
+                        f"- **Location:** {emp.get('location', 'N/A')}\n"
+                        f"- **Email:** {emp.get('email', 'N/A')}\n"
+                        f"- **Direct Manager:** {emp.get('manager_name') or 'Reports directly to Board of Directors'}\n\n"
+                        f"**Data Provenance:** Retrieved from internal SQLite Central Personnel Database."
+                    )
 
-        # Handling Remote Work Policy
+        # Handling Remote & Policy Queries
         policy_res = next((r for r in executed_results if r["tool"] in ("search_policies", "semantic_search_policies")), None)
-        if policy_res and ("remote" in user_query.lower() or "hybrid" in user_query.lower() or "wfh" in user_query.lower()):
-            vector_res = next((r for r in executed_results if r["tool"] == "semantic_search_policies"), None)
-            vec_content = ""
-            if vector_res and isinstance(vector_res["output"], list) and vector_res["output"]:
-                vec_content = vector_res["output"][0].get("content", "")
+        remote_keywords = (
+            "remote", "hybrid", "work from home", "wfh", "telecommute",
+            "in-office", "office days", "friday", "home setup", "allowance", "ergonomic"
+        )
+        general_policy_keywords = (
+            "policy", "policies", "guideline", "guidelines", "handbook", "benefit", "benefits",
+            "insurance", "expense", "expenses", "travel", "relocation"
+        )
 
-            return (
-                f"### Xiarch Bharat Remote & Hybrid Work Policy (POL-002)\n\n"
-                f"Based on internal policy records in our JSON Registry and ChromaDB Vector Handbook:\n\n"
-                f"- **Remote Work Allowance:** Eligible team members in Engineering, Product, and Design may work remotely up to **3 days per week**.\n"
-                f"- **Core In-Office Days:** Tuesday and Thursday are core in-person collaboration days for sprint reviews and planning.\n"
-                f"- **Optional Remote Fridays:** Fridays are designated optional remote days for eligible departments.\n"
-                f"- **Equipment & Internet Allowance:**\n"
-                f"  - High-speed internet reimbursement of **INR 2,000/month** (requires broadband invoice).\n"
-                f"  - One-time ergonomic home setup stipend of **INR 25,000** upon passing probation.\n\n"
-                f"**Detailed Handbook Section Retrieved:**\n"
-                f"> {vec_content[:300]}...\n\n"
-                f"**Sources Consulted:** JSON Policy Registry (`POL-002`) + ChromaDB Vector Store (`remote_work_policy.md`)."
-            )
+        if policy_res:
+            uq_lower = user_query.lower()
+            if any(k in uq_lower for k in remote_keywords):
+                vector_res = next((r for r in executed_results if r["tool"] == "semantic_search_policies"), None)
+                vec_content = ""
+                if vector_res and isinstance(vector_res["output"], list) and vector_res["output"]:
+                    vec_content = vector_res["output"][0].get("content", "")
+
+                return (
+                    f"### Xiarch Bharat Remote & Hybrid Work Policy (POL-002)\n\n"
+                    f"Based on internal policy records in our JSON Registry and ChromaDB Vector Handbook:\n\n"
+                    f"- **Remote Work Allowance:** Eligible team members in Engineering, Product, and Design may work remotely up to **3 days per week**.\n"
+                    f"- **Core In-Office Days:** Tuesday and Thursday are core in-person collaboration days for sprint reviews and planning.\n"
+                    f"- **Optional Remote Fridays:** Fridays are designated optional remote days for eligible departments.\n"
+                    f"- **Equipment & Internet Allowance:**\n"
+                    f"  - High-speed internet reimbursement of **INR 2,000/month** (requires broadband invoice).\n"
+                    f"  - One-time ergonomic home setup stipend of **INR 25,000** upon passing probation.\n\n"
+                    f"**Detailed Handbook Section Retrieved:**\n"
+                    f"> {vec_content[:300]}...\n\n"
+                    f"**Sources Consulted:** JSON Policy Registry (`POL-002`) + ChromaDB Vector Store (`remote_work_policy.md`)."
+                )
+            elif any(k in uq_lower for k in general_policy_keywords):
+                out = policy_res["output"]
+                lines = [f"### Company Policy Information\n"]
+                if isinstance(out, list) and out:
+                    for item in out[:3]:
+                        title = item.get("title") or item.get("section") or "Policy Document"
+                        doc_id = item.get("id") or item.get("doc_name") or ""
+                        summary = item.get("summary") or item.get("content") or ""
+                        lines.append(f"#### 📄 {title} ({doc_id})")
+                        lines.append(f"{summary[:350]}...\n")
+                    lines.append("**Sources Consulted:** JSON Policy Registry / Vector Policy Store.")
+                    return "\n".join(lines)
 
         # Handling Attendance Report
         att_res = next((r for r in executed_results if r["tool"] == "get_attendance_report"), None)

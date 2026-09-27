@@ -26,7 +26,10 @@ async def run_tests():
         ("5. Conflict Resolution", "Neha says she has 20 leave days left but the system shows 15 — what should I do?"),
         ("6. Long-Term Memory", "Remember that Neha prefers email communication over Slack"),
         ("7. Critical Action Approval Gate", "Submit a leave request for Rahul from 2026-10-01 to 2026-10-05 for vacation"),
-        ("8. Batch Department Approval", "Approve all pending leave requests for the Marketing team")
+        ("8. Batch Department Approval", "Approve all pending leave requests for the Marketing team"),
+        ("9. Out-of-Whitelist Sabbatical Check (Kavita Reddy)", "How many leaves does Kavita Reddy have left, and does she qualify for a sabbatical?"),
+        ("10. Out-of-Whitelist Leave Submission (Pooja Hegde)", "Submit a leave request for Pooja Hegde from 2026-10-15 to 2026-10-18 for medical leave"),
+        ("11. Unknown Employee Not Found Guard (Sherlock Holmes)", "Who is the manager of Sherlock Holmes?")
     ]
 
     for title, query in scenarios:
@@ -62,7 +65,7 @@ async def run_tests():
     assert len(mems) > 0, "Memory should not be empty!"
 
     print("=" * 60)
-    print("🎉 ALL 8 SCENARIOS AND GOVERNANCE TESTS PASSED!")
+    print("🎉 ALL SCENARIOS, OUT-OF-WHITELIST REGRESSION TESTS & GOVERNANCE CHECKS PASSED!")
     print("=" * 60)
 
 

@@ -143,4 +143,8 @@ class VectorKnowledgeSource:
                 print(f"[VectorKnowledgeSource] Chroma search query fallback: {e}")
 
         # Fallback to local vector/TF-IDF search
-        return self._tfidf_vector_search(query, top_k=top_k)
+        try:
+            return self._tfidf_vector_search(query, top_k=top_k)
+        except Exception as e:
+            print(f"[VectorKnowledgeSource] TF-IDF search error: {e}")
+            return [c.to_dict() for c in self.chunks[:top_k]]

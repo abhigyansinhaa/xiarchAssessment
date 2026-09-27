@@ -9,7 +9,30 @@ class PolicyService:
 
     @staticmethod
     def semantic_policy_search(query: str, top_k: int = 3) -> List[Dict[str, Any]]:
-        return knowledge_manager.vector_store.search_documents(query, top_k=top_k)
+        try:
+            results = knowledge_manager.vector_store.search_documents(query, top_k=top_k)
+            if results:
+                return results
+        except Exception as e:
+            print(f"[PolicyService] Vector search error: {e}. Falling back to JSON policies.")
+
+        # Degradation to JSON-policy-only
+        try:
+            json_res = knowledge_manager.json_policies.search_policies(query=query)
+            if json_res:
+                return [
+                    {
+                        "doc_name": f"{p.get('id', 'POL')}.json",
+                        "section": p.get("title", "Policy Document"),
+                        "content": f"[{p.get('id')} - {p.get('title')}]\n{p.get('summary', '')}\n{p.get('details', '')}",
+                        "similarity_score": 1.0
+                    }
+                    for p in json_res[:top_k]
+                ]
+        except Exception as err:
+            print(f"[PolicyService] JSON policy fallback error: {err}")
+
+        return []
 
     @staticmethod
     def check_sabbatical_eligibility(employee_name_or_id: str) -> Dict[str, Any]:
