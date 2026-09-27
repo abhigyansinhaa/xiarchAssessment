@@ -166,3 +166,4 @@ xiarchAssessment/
    - **Tier 2:** Curated JSON Policy Registry
    - **Tier 3:** CSV Operational Logs (Biometric punches & payroll)
    - **Tier 4:** ChromaDB Vector Embeddings (General handbooks)
+4. **Vector Store Resilience & Degradation:** If the ChromaDB embedding model cannot be downloaded (offline/restricted network), the agent automatically degrades to JSON-policy-only search rather than failing.
